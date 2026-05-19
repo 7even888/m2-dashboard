@@ -423,8 +423,8 @@ table.pl tr.npr td:first-child { text-align: left; }
   </div>
   <div class="sb-nav">
     <div class="sb-section">Overview</div>
-    <button class="sb-item active" onclick="goto('overview',this)"><span class="sb-icon"></span> Dashboard</button>
-    <button class="sb-item" onclick="goto('pl',this)"><span class="sb-icon"></span> P&amp;L Monitor <span class="sb-badge">Live</span></button>
+    <button class="sb-item" onclick="goto('overview',this)"><span class="sb-icon"></span> Dashboard</button>
+    <button class="sb-item active" onclick="goto('pl',this)"><span class="sb-icon"></span> P&amp;L Monitor <span class="sb-badge">Live</span></button>
 
     <div class="sb-section">Operations</div>
     <button class="sb-item" onclick="goto('projects',this)"><span class="sb-icon"></span> Project Forecast</button>
@@ -453,8 +453,8 @@ table.pl tr.npr td:first-child { text-align: left; }
   <!-- TOPNAV -->
   <div class="topnav">
     <div>
-      <div class="tn-title" id="tn-title">Dashboard Overview</div>
-      <div class="tn-sub" id="tn-sub">FY27 . All figures in AUD</div>
+      <div class="tn-title" id="tn-title">P&amp;L Performance Monitor</div>
+      <div class="tn-sub" id="tn-sub">Budget vs Actual . Rolling 3-month + Full Year</div>
     </div>
     <div class="tn-controls">
       <div class="tg" id="periodTg">
@@ -484,7 +484,7 @@ table.pl tr.npr td:first-child { text-align: left; }
   <div class="content">
 
     <!--  OVERVIEW  -->
-    <div id="panel-overview" class="panel on">
+    <div id="panel-overview" class="panel">
       <div class="sl">Headline metrics</div>
       <div class="kg kg-5">
         <div class="k sa"><div class="kl">Sales target <span class="stag sg">Pipeline</span></div><div class="kv up" id="ov-sales">$125,794</div><div class="ks" id="ov-sales-sub">Target this month</div><div class="kt am">-- $80K invoiced . 63%</div><div class="bw"><div class="bb" style="width:63%;background:var(--green)"></div></div></div>
@@ -526,7 +526,7 @@ table.pl tr.npr td:first-child { text-align: left; }
     </div>
 
     <!--  P&L MONITOR  -->
-    <div id="panel-pl" class="panel">
+    <div id="panel-pl" class="panel on">
       <div class="kg kg-5" style="margin-bottom:14px">
         <div class="k sa"><div class="kl">Sales target <span class="stag sg">Pipeline</span></div><div class="kv up">$125,794</div><div class="ks">63% achieved this month</div><div class="bw"><div class="bb" style="width:63%;background:var(--green)"></div></div></div>
         <div class="k hi"><div class="kl">EBITDA margin</div><div class="kv up">6.1%</div><div class="ks">$7,618 / month</div><div class="bw"><div class="bb" style="width:31%;background:var(--green)"></div></div></div>
@@ -745,7 +745,7 @@ table.pl tr.npr td:first-child { text-align: left; }
 
       <!-- Revenue Chart panel -->
       <div id="proj-panel-chart" class="proj-tab-panel" style="display:none">
-        <div class="card chart-wrap" style="height:280px"><canvas id="stackedChart"></canvas></div>
+        <div class="card chart-wrap" style="height:280px"><canvas id="stackedChart" height="0" style="display: block; box-sizing: border-box; height: 0px; width: 0px;" width="0"></canvas></div>
       </div>
 
     </div>
@@ -1874,4 +1874,4 @@ async function clearSave() {
 
 <div id="claude-agent-glow-border" style="position: fixed; inset: 0px; pointer-events: none; z-index: 2147483646; opacity: 1; transition: opacity 0.3s ease-in-out; animation: 2s ease-in-out 0s infinite normal none running claude-pulse; box-shadow: rgba(217, 119, 87, 0.5) 0px 0px 10px inset, rgba(217, 119, 87, 0.3) 0px 0px 20px inset, rgba(217, 119, 87, 0.1) 0px 0px 30px inset;"></div><div id="claude-phantom-cursor" aria-hidden="true" style="position: fixed; top: 0px; left: 0px; pointer-events: none; z-index: 2147483646; transform: translate3d(246px, 82px, 0px); transition: transform 180ms cubic-bezier(0.2, 0, 0, 1); will-change: transform;"><svg id="claude-phantom-cursor-plain" width="20" height="26" viewBox="0 0 20 26" style="position: absolute; top: 0px; left: 0px; overflow: visible;"><path d="M0 0 L0 18 L4.5 14 L7.5 21.5 L11 20 L8 13 L14 13 Z" stroke="white" stroke-width="3" stroke-linejoin="round" fill="white"></path><path d="M0 0 L0 18 L4.5 14 L7.5 21.5 L11 20 L8 13 L14 13 Z" fill="#111"></path></svg><svg id="claude-phantom-cursor-styled" width="20" height="26" viewBox="0 0 20 26" style="position: absolute; top: 0px; left: 0px; overflow: visible; filter: drop-shadow(rgba(217, 119, 87, 0.9) 0px 0px 4px) drop-shadow(rgba(217, 119, 87, 0.45) 0px 0px 10px);"><path d="M0 0 L0 18 L4.5 14 L7.5 21.5 L11 20 L8 13 L14 13 Z" stroke="#D97757" stroke-width="3" stroke-linejoin="round" fill="#D97757"></path><path d="M0 0 L0 18 L4.5 14 L7.5 21.5 L11 20 L8 13 L14 13 Z" fill="#FAF9F5"></path></svg></div>
 <script>var _s=document.querySelectorAll("script");var _m=Array.from(_s).find(function(s){return s.textContent.length>10000;});if(_m&&typeof goto==="undefined"){(0,eval)(_m.textContent);}</script>
-</body><!-- fix:1779175027400 --></html>
+<div id="claude-agent-glow-border" style="position: fixed; inset: 0px; pointer-events: none; z-index: 2147483646; opacity: 1; transition: opacity 0.3s ease-in-out; animation: 2s ease-in-out 0s infinite normal none running claude-pulse; box-shadow: rgba(217, 119, 87, 0.5) 0px 0px 10px inset, rgba(217, 119, 87, 0.3) 0px 0px 20px inset, rgba(217, 119, 87, 0.1) 0px 0px 30px inset;"></div><div id="claude-phantom-cursor" aria-hidden="true" style="position: fixed; top: 0px; left: 0px; pointer-events: none; z-index: 2147483646; transform: translate3d(238px, 126px, 0px); transition: transform 180ms cubic-bezier(0.2, 0, 0, 1); will-change: transform;"><svg id="claude-phantom-cursor-plain" width="20" height="26" viewBox="0 0 20 26" style="position: absolute; top: 0px; left: 0px; overflow: visible;"><path d="M0 0 L0 18 L4.5 14 L7.5 21.5 L11 20 L8 13 L14 13 Z" stroke="white" stroke-width="3" stroke-linejoin="round" fill="white"></path><path d="M0 0 L0 18 L4.5 14 L7.5 21.5 L11 20 L8 13 L14 13 Z" fill="#111"></path></svg><svg id="claude-phantom-cursor-styled" width="20" height="26" viewBox="0 0 20 26" style="position: absolute; top: 0px; left: 0px; overflow: visible; filter: drop-shadow(rgba(217, 119, 87, 0.9) 0px 0px 4px) drop-shadow(rgba(217, 119, 87, 0.45) 0px 0px 10px);"><path d="M0 0 L0 18 L4.5 14 L7.5 21.5 L11 20 L8 13 L14 13 Z" stroke="#D97757" stroke-width="3" stroke-linejoin="round" fill="#D97757"></path><path d="M0 0 L0 18 L4.5 14 L7.5 21.5 L11 20 L8 13 L14 13 Z" fill="#FAF9F5"></path></svg></div></body><!-- fix:1779175027400 --><!-- v:1779175309720 --></html>
