@@ -470,7 +470,7 @@ table.pl tr.npr td:first-child { text-align: left; }
     <div id="panel-overview" class="panel on">
       <div class="sl">Headline metrics</div>
       <div class="kg kg-5">
-        <div class="k sa"><div class="kl">Sales target <span class="stag sg">Pipeline</span></div><div class="kv up" id="ov-sales">$125,794</div><div class="ks" id="ov-sales-sub">Target this month</div><div class="kt am">— $80K invoiced · 63%</div><div class="bw"><div class="bb" style="width:63%;background:var(--green)"></div></div></div>
+        <div class="k sa" style="cursor:pointer" onclick="editSalesTarget()"><div class="kl">Sales target <span class="stag sg">Pipeline</span> <span style="font-size:9px;color:var(--blue)">&#9998;</span></div><div class="kv up" id="ov-sales">$125,794</div><div class="ks" id="ov-sales-sub">Target this month</div><div class="kt am">— $80K invoiced · 63%</div><div class="bw"><div class="bb" style="width:63%;background:var(--green)"></div></div></div>
         <div class="k hi"><div class="kl">EBITDA margin <span class="stag sc">Composite</span></div><div class="kv up">6.1%</div><div class="ks">$7,618 / month</div><div class="kt up">↑ Beat (0.9%) budget</div><div class="bw"><div class="bb" style="width:31%;background:var(--green)"></div></div></div>
         <div class="k hi"><div class="kl">Revenue vs budget <span class="stag sx">Xero</span></div><div class="kv am">$80,000</div><div class="ks">vs $101.1K budget</div><div class="kt dn">↓ $(21.1K) · −20.9%</div><div class="bw"><div class="bb" style="width:79%;background:var(--amber)"></div></div></div>
         <div class="k hi"><div class="kl">Pipeline coverage <span class="stag sm">Model</span></div><div class="kv up">15×</div><div class="ks">$1.09M ÷ $72.5K/mo</div><div class="kt up">↑ Excellent — target 6×</div><div class="bw"><div class="bb" style="width:100%;background:var(--green)"></div></div></div>
@@ -1872,12 +1872,70 @@ else{initDashboard();}
 </script>
 <script>
 
+// Sales target
+var SALES_TARGET = parseFloat(localStorage.getItem('m2_sales_target') || '125000');
+
+function editSalesTarget() {
+  var el = document.getElementById('ov-sales');
+  if (!el || el.querySelector('input')) return;
+  var inp = document.createElement('input');
+  inp.type = 'number';
+  inp.value = SALES_TARGET;
+  inp.style.cssText = 'background:var(--bg);border:1px solid var(--blue);border-radius:4px;color:var(--blue);font-size:18px;font-weight:500;width:140px;padding:2px 8px;font-family:var(--font-mono)';
+  el.innerHTML = ''; el.appendChild(inp);
+  inp.focus(); inp.select();
+  function done() {
+    var v = parseFloat(inp.value);
+    if (v > 0) { SALES_TARGET = v; localStorage.setItem('m2_sales_target', v); }
+    el.textContent = '$' + Math.round(SALES_TARGET).toLocaleString();
+    updateVsTargetRow();
+  }
+  inp.addEventListener('blur', done);
+  inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') inp.blur(); });
+}
+
+function updateVsTargetRow() {
+  // Find or create the vs-target row after the monthly total row in the project table
+  var totalRows = document.querySelectorAll('.proj-grid-wrap tr.proj-total');
+  totalRows.forEach(function(totalRow) {
+    // Get all td values from this total row (skip first 2: label cols)
+    var tds = totalRow.querySelectorAll('td');
+    // Check if vs-target row already exists after this total row
+    var next = totalRow.nextElementSibling;
+    var vsRow;
+    if (next && next.classList.contains('vs-target-row')) {
+      vsRow = next;
+    } else {
+      vsRow = document.createElement('tr');
+      vsRow.className = 'vs-target-row';
+      vsRow.style.cssText = 'background:transparent';
+      totalRow.parentNode.insertBefore(vsRow, totalRow.nextSibling);
+    }
+    // Build vs-target cells
+    var cells = '<td colspan="2" style="font-size:9px;color:var(--text4);text-transform:uppercase;letter-spacing:.07em;padding:3px 8px 6px">vs target</td>';
+    for (var i = 2; i < tds.length - 1; i++) {
+      var txt = tds[i].textContent.replace(/[^0-9.]/g,'');
+      var val = parseFloat(txt) * 1000;
+      if (!val) { cells += '<td style="padding:3px 8px 6px;text-align:right;font-size:10px;color:var(--text4)">—</td>'; continue; }
+      var diff = val - SALES_TARGET;
+      var fmt = '$' + Math.round(Math.abs(diff)/1000) + 'K';
+      if (diff >= 0) {
+        cells += '<td style="padding:3px 8px 6px;text-align:right;font-size:10px;font-weight:500;color:var(--green)">+' + fmt + '</td>';
+      } else {
+        cells += '<td style="padding:3px 8px 6px;text-align:right;font-size:10px;font-weight:500;color:var(--red)">(' + fmt + ')</td>';
+      }
+    }
+    cells += '<td></td>';
+    vsRow.innerHTML = cells;
+  });
+}
+
 // Safari compatibility: expose all functions as window globals
 (function() {
   var toExpose = [
     'goto','save','refreshProjects','initCharts','loadAllData',
     'showStatus','getDB','setFY','setFY26Mo','showProjTab',
-    'editSalesTarget','updateSalesTargetUI','exportData','importData',
+    'editSalesTarget','updateSalesTargetUI','editSalesTarget','updateVsTargetRow','exportData','importData',
     'clearSave','addProject','deleteProject','renderPLTable3',
     'renderPLTableFY','initDashboard'
   ];
@@ -1892,4 +1950,4 @@ else{initDashboard();}
 </script>
 <script>var _ms=document.querySelectorAll("script");var _mm=Array.from(_ms).find(function(s){return s.textContent.length>10000;});if(_mm&&typeof goto==="undefined"){(0,eval)(_mm.textContent);}<\/script>
 </body>
-</html>
+<!-- sales-v2:1779241983552 --></html>
