@@ -1870,6 +1870,26 @@ function setFY26Mo(el,mo){
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',initDashboard);}
 else{initDashboard();}
 </script>
+<script>
+
+// Safari compatibility: expose all functions as window globals
+(function() {
+  var toExpose = [
+    'goto','save','refreshProjects','initCharts','loadAllData',
+    'showStatus','getDB','setFY','setFY26Mo','showProjTab',
+    'editSalesTarget','updateSalesTargetUI','exportData','importData',
+    'clearSave','addProject','deleteProject','renderPLTable3',
+    'renderPLTableFY','initDashboard'
+  ];
+  toExpose.forEach(function(name) {
+    try {
+      if (typeof eval(name) === 'function' && !window[name]) {
+        window[name] = eval(name);
+      }
+    } catch(e) {}
+  });
+})();
+</script>
 <script>var _ms=document.querySelectorAll("script");var _mm=Array.from(_ms).find(function(s){return s.textContent.length>10000;});if(_mm&&typeof goto==="undefined"){(0,eval)(_mm.textContent);}<\/script>
 </body>
 </html>
