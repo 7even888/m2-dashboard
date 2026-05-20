@@ -1270,6 +1270,9 @@ function addProject(){
     addr:document.getElementById('np-addr').value.trim()||'--',
     cat:document.getElementById('np-cat').value,
     status:document.getElementById('np-status').value,
+  // Map pipeline stages to 'pipeline' status
+  if(status==='met'||status==='proposal'||status==='awaiting'){status='pipeline';}
+
     prob:parseInt(document.getElementById('np-prob').value)||100,
     fees,lossReason:'',
   });
