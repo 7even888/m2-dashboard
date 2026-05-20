@@ -1949,5 +1949,69 @@ function updateVsTargetRow() {
 })();
 </script>
 <script>var _ms=document.querySelectorAll("script");var _mm=Array.from(_ms).find(function(s){return s.textContent.length>10000;});if(_mm&&typeof goto==="undefined"){(0,eval)(_mm.textContent);}<\/script>
+
+<script>
+function insertVsTargetRows() {
+  var tables = document.querySelectorAll('.proj-grid-wrap table');
+  tables.forEach(function(tbl) {
+    // Remove existing vs-target rows
+    tbl.querySelectorAll('.vs-target-row').forEach(function(r){ r.remove(); });
+    // Find total row (last row in tbody)
+    var rows = tbl.querySelectorAll('tbody tr');
+    if (!rows.length) return;
+    var totalRow = rows[rows.length - 1];
+    // Get month column tds (skip first 2: client + status cols, skip last 2: FY total + notes)
+    var tds = totalRow.querySelectorAll('td');
+    if (tds.length < 4) return;
+    // Build vs target row
+    var tr = document.createElement('tr');
+    tr.className = 'vs-target-row';
+    // Label cell spanning first 2 cols
+    var labelTd = document.createElement('td');
+    labelTd.colSpan = 2;
+    labelTd.style.cssText = 'font-size:9px;color:var(--text4);text-transform:uppercase;letter-spacing:.07em;padding:2px 8px 6px;text-align:left';
+    labelTd.textContent = 'vs target';
+    tr.appendChild(labelTd);
+    // Month cells (indices 2 to tds.length-3)
+    for (var i = 2; i < tds.length - 2; i++) {
+      var td = document.createElement('td');
+      td.style.cssText = 'padding:2px 8px 6px;text-align:right';
+      var raw = tds[i].textContent.replace(/[^0-9.]/g,'').trim();
+      var val = parseFloat(raw) * 1000;
+      if (!raw || val === 0) {
+        td.innerHTML = '<span style="color:var(--text4);font-size:10px">—</span>';
+      } else {
+        var diff = val - (window.SALES_TARGET || 125000);
+        var absK = Math.round(Math.abs(diff)/1000);
+        if (diff >= 0) {
+          td.innerHTML = '<span style="color:var(--green);font-size:10px;font-weight:500">+
+<!-- sales-v2:1779241983552 --><!-- vs-row-v3:1779242297687 --></html> + absK + 'K</span>';
+        } else {
+          td.innerHTML = '<span style="color:var(--red);font-size:10px;font-weight:500">(
+<!-- sales-v2:1779241983552 --></html> + absK + 'K)</span>';
+        }
+      }
+      tr.appendChild(td);
+    }
+    // Empty cells for FY total + notes cols
+    for (var j = 0; j < 2; j++) {
+      var etd = document.createElement('td');
+      tr.appendChild(etd);
+    }
+    totalRow.parentNode.insertBefore(tr, totalRow.nextSibling);
+  });
+}
+
+// Run after page loads and after any refresh
+var _origRefresh = window.refreshProjects;
+window.refreshProjects = function() {
+  _origRefresh && _origRefresh.apply(this, arguments);
+  setTimeout(insertVsTargetRows, 100);
+};
+
+// Also run now on load
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(insertVsTargetRows, 500); });
+setTimeout(insertVsTargetRows, 1000);
+</script>
 </body>
 <!-- sales-v2:1779241983552 --></html>
