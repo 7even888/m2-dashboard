@@ -1,44 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>M2Co — Executive Dashboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>window._sdk=window.supabase;</script>
-<style>
-:root {
-  --bg:        #0a0e17;
-  --bg2:       #0f1520;
-  --bg3:       #141e2e;
-  --bg4:       #1a2640;
-  --border:    #1e2d45;
-  --border2:   #243550;
-  --text:      #e2e8f0;
-  --text2:     #8496b0;
-  --text3:     #4a6080;
-  --text4:     #2d3f55;
-  --green:     #4ade80;
-  --green-bg:  #052e0f;
-  --green-bd:  #14532d;
-  --red:       #f87171;
-  --red-bg:    #2d0a0a;
-  --amber:     #fbbf24;
-  --amber-bg:  #1c1a05;
-  --blue:      #60a5fa;
-  --blue-dark: #3b82f6;
-  --blue-bg:   #0c1829;
-  --blue-bd:   #1e3a5f;
-  --purple:    #c084fc;
-  --teal:      #2dd4bf;
-  --font-sans: 'DM Sans', sans-serif;
-  --font-mono: 'DM Mono', monospace;
-  --font-serif:'Instrument Serif', serif;
-  --r:         8px;
-  --r-lg:      12px;
+function submitNewProject(s){
+  var client=(document.getElementById('nc-'+s)||{}).value||'';
+  var addr=(document.getElementById('na-'+s)||{}).value||'--';
+  var cat=(document.getElementById('ncat-'+s)||{}).value||'tp';
+  var status=s==='pipe'?'pipeline':'committed';
+  var fee=parseFloat((document.getElementById('nf-'+s)||{}).value)||0;
+  var prob=status==='committed'?100:50;
+  if(!client.trim()){alert('Enter client name');return;}
+  var fees=new Array(12).fill(fee);
+  var np={id:Date.now(),client:client,addr:addr,cat:cat,status:status,prob:prob,fees:fees,lossReason:'',notes:'',noteTag:'General',noteDate:''};
+  PROJECTS.push(np);
+  var db=getDB();
+  if(db){db.from('projects').insert({client:np.client,addr:np.addr,cat:np.cat,status:np.status,prob:np.prob,fees:np.fees,loss_reason:'',notes:'',note_tag:'General',note_date:''}).select().single().then(function(r){if(r.data)np.id=r.data.id;});}
+  save();
+  refreshProjects();
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
@@ -1875,4 +1849,4 @@ function showAddRow(s){var t=document.getElementById('atr-'+s);var f=document.ge
 </script>
 <script>var _ms=document.querySelectorAll("script");var _mm=Array.from(_ms).find(function(s){return s.textContent.length>10000;});if(_mm&&typeof goto==="undefined"){(0,eval)(_mm.textContent);}<\/script>
 </body>
-<!-- col-fix:1779245926896 --><!-- inline-add:1779246533839 --><!-- snp:1779251538827 --></html>
+<!-- col-fix:1779245926896 --><!-- inline-add:1779246533839 --><!-- snp:1779251538827 --><!-- pipe-s:1779251675501 --></html>
