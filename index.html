@@ -1850,25 +1850,24 @@ function editSalesTarget() {
   inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') inp.blur(); });
 }
 
-function showAddRow(s){var t=document.getElementById('atr-'+s);var f=document.getElementById('arf-'+s);if(t)t.style.display='none';if(f){f.style.display='';var i=document.getElementById('nc-'+s);if(i)i.focus();}}function cancelAdd(s){var t=document.getElementById('atr-'+s);var f=document.getElementById('arf-'+s);if(t)t.style.display='';if(f)f.style.display='none';}function submitNewProject(s){var client=(document.getElementById('nc-'+s)||{}).value||'';var addr=(document.getElementById('na-'+s)||{}).value||'--';var cat=(document.getElementById('ncat-'+s)||{}).value||'tp';var status=(document.getElementById('nst-'+s)||{}).value||'committed';var fee=parseFloat((document.getElementById('nf-'+s)||{}).value)||0;if(!client.trim()){return;}var fees=new Array(12).fill(fee);var np={id:Date.now(),client:client,addr:addr,cat:cat,status:status,prob:status==='committed'?100:50,fees:fees,lossReason:'',notes:'',noteTag:'General',noteDate:''};PROJECTS.push(np);var db=getDB();if(db){db.from('projects').insert({client:np.client,addr:np.addr,cat:np.cat,status:np.status,prob:np.prob,fees:np.fees,loss_reason:'',notes:'',note_tag:'General',note_date:''}).select().single().then(function(r){if(r.data)np.id=r.data.id;});}save();refreshProjects();}
-// Safari compatibility: expose all functions as window globals
-(function() {
-  var toExpose = [
-    'goto','save','refreshProjects','initCharts','loadAllData',
-    'showStatus','getDB','setFY','setFY26Mo','showProjTab',
-    'editSalesTarget','updateSalesTargetUI','exportData','importData',
-    'clearSave','addProject','deleteProject','renderPLTable3',
-    'renderPLTableFY','initDashboard'
-  ];
-  toExpose.forEach(function(name) {
-    try {
-      if (typeof eval(name) === 'function' && !window[name]) {
-        window[name] = eval(name);
-      }
-    } catch(e) {}
-  });
+function showAddRow(s){var t=document.getElementById('atr-'+s);var f=document.getElementById('arf-'+s);if(t)t.style.display='none';if(f){f.style.display='';var i=document.getElementById('nc-'+s);if(i)i.focus();}}function cancelAdd(s){var t=document.getElementById('atr-'+s);var f=document.getElementById('arf-'+s);if(t)t.style.display='';if(f)f.style.display='none';}function submitNewProject(s){
+  var client=(document.getElementById('nc-'+s)||{}).value||'';
+  var addr=(document.getElementById('na-'+s)||{}).value||'--';
+  var cat=(document.getElementById('ncat-'+s)||{}).value||'tp';
+  var status = s==='pipe' ? 'pipeline' : 'committed';
+  var fee=parseFloat((document.getElementById('nf-'+s)||{}).value)||0;
+  var probEl=document.getElementById('np-'+s);
+  var prob=probEl?(parseFloat(probEl.value)||50):50;
+  if(!client.trim()){alert('Enter client name');return;}
+  var fees=new Array(12).fill(fee);
+  var np={id:Date.now(),client:client,addr:addr,cat:cat,status:status,prob:prob,fees:fees,lossReason:'',notes:'',noteTag:'General',noteDate:''};
+  PROJECTS.push(np);
+  var db=getDB();
+  if(db){db.from('projects').insert({client:np.client,addr:np.addr,cat:np.cat,status:np.status,prob:np.prob,fees:np.fees,loss_reason:'',notes:'',note_tag:'General',note_date:''}).select().single().then(function(r){if(r.data)np.id=r.data.id;});}
+  save();
+  refreshProjects();
 })();
 </script>
 <script>var _ms=document.querySelectorAll("script");var _mm=Array.from(_ms).find(function(s){return s.textContent.length>10000;});if(_mm&&typeof goto==="undefined"){(0,eval)(_mm.textContent);}<\/script>
 </body>
-<!-- col-fix:1779245926896 --><!-- inline-add:1779246533839 --><!-- status-fix:1779250797899 --></html>
+<!-- col-fix:1779245926896 --><!-- inline-add:1779246533839 --><!-- status-fix:1779250797899 --><!-- pipe-status:1779250922521 --></html>
