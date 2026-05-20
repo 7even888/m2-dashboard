@@ -1414,18 +1414,7 @@ function buildGridTable(rows, showProb=true){
     else{h+='<td style="padding:2px 8px 8px;text-align:right;font-size:10px;font-weight:500;color:var(--red)">($'+absK+'K)</td>';}
   });
   h+='<td></td><td></td><td></td><td></td></tr>';
-  h+='<tfoot><tr class="add-trigger-row" id="atr-all"><td colspan="19" style="padding:4px 8px 8px"><button onclick="showAddRow(\\'all\\')" style="background:none;border:0.5px dashed var(--border2);border-radius:4px;color:var(--text4);font-size:11px;padding:5px 14px;cursor:pointer">+ Add project</button></td></tr>' +
-  '<tr id="arf-all" style="display:none;background:var(--bg2)">' +
-    '<td><input id="nc-all" type="text" placeholder="Client name" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:120px"></td>' +
-    '<td><input id="na-all" type="text" placeholder="Address" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:110px"></td>' +
-    '<td><select id="ncat-all" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px"><option value=\"tp\">Town Planning</option><option value=\"pm\">PM</option><option value=\"dev\">Development</option></select></td>' +
-    '<td><select id="nst-all" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px"><option value=\"committed\">Committed</option><option value=\"pipeline\">Pipeline</option></select></td>' +
-    '<td><input id="nf-all" type="number" placeholder="Monthly $" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:80px;text-align:right"></td>' +
-    '<td colspan="14">' +
-      '<button onclick="submitNewProject(\\'all\\')" style="background:var(--blue);border:none;border-radius:4px;color:#fff;font-size:11px;font-weight:500;padding:4px 12px;cursor:pointer;margin-right:6px">+ Add</button>' +
-      '<button onclick="cancelAdd(\\'all\\')" style="background:none;border:0.5px solid var(--border2);border-radius:4px;color:var(--text4);font-size:11px;padding:4px 10px;cursor:pointer">Cancel</button>' +
-    '</td>' +
-  '</tr></tfoot>';
+  h+='<tfoot><tr id="atr-all"><td colspan="19" style="padding:4px 8px 8px"><button onclick="showAddRow(\'all\')" style="background:none;border:0.5px dashed var(--border2);border-radius:4px;color:var(--text4);font-size:11px;padding:5px 14px;cursor:pointer">+ Add project</button></td></tr><tr id="arf-all" style="display:none;background:var(--bg2)"><td><input id="nc-all" type="text" placeholder="Client name" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:120px"></td><td><input id="na-all" type="text" placeholder="Address" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:110px"></td><td><select id="ncat-all" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px"><option value="tp">Town Planning</option><option value="pm">PM</option><option value="dev">Development</option></select></td><td style="color:var(--text4);font-size:10px;padding:6px 8px">Committed</td><td><input id="nf-all" type="number" placeholder="Monthly $" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:80px;text-align:right"></td><td colspan="14"><button onclick="submitNewProject(\'all\')" style="background:var(--blue);border:none;border-radius:4px;color:#fff;font-size:11px;font-weight:500;padding:4px 12px;cursor:pointer;margin-right:6px">+ Add</button><button onclick="cancelAdd(\'all\')" style="background:none;border:0.5px solid var(--border2);border-radius:4px;color:var(--text4);font-size:11px;padding:4px 10px;cursor:pointer">Cancel</button></td></tr></tfoot>';
   h+='</table></div>';
   return h;
 }
@@ -1556,18 +1545,7 @@ function renderMetrics(){
   h+='<td>$'+(totalP/1000).toFixed(0)+'K</td>';
   h+='<td style="color:var(--amber)">$'+(totalW/1000).toFixed(0)+'K</td>';
   h+='<td style="color:var(--blue)">$'+((totalC+totalW)/1000).toFixed(0)+'K</td><td>100%</td></tr>';
-  h+='<tfoot><tr class="add-trigger-row" id="atr-pipe"><td colspan="19" style="padding:4px 8px 8px"><button onclick="showAddRow(\\'pipe\\')" style="background:none;border:0.5px dashed var(--border2);border-radius:4px;color:var(--text4);font-size:11px;padding:5px 14px;cursor:pointer">+ Add project</button></td></tr>' +
-  '<tr id="arf-pipe" style="display:none;background:var(--bg2)">' +
-    '<td><input id="nc-pipe" type="text" placeholder="Client name" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:120px"></td>' +
-    '<td><input id="na-pipe" type="text" placeholder="Address" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:110px"></td>' +
-    '<td><select id="ncat-pipe" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px"><option value=\"tp\">Town Planning</option><option value=\"pm\">PM</option><option value=\"dev\">Development</option></select></td>' +
-    '<td><select id="nst-pipe" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px"><option value=\"committed\">Committed</option><option value=\"pipeline\">Pipeline</option></select></td>' +
-    '<td><input id="nf-pipe" type="number" placeholder="Monthly $" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:80px;text-align:right"></td>' +
-    '<td colspan="14">' +
-      '<button onclick="submitNewProject(\\'pipe\\')" style="background:var(--blue);border:none;border-radius:4px;color:#fff;font-size:11px;font-weight:500;padding:4px 12px;cursor:pointer;margin-right:6px">+ Add</button>' +
-      '<button onclick="cancelAdd(\\'pipe\\')" style="background:none;border:0.5px solid var(--border2);border-radius:4px;color:var(--text4);font-size:11px;padding:4px 10px;cursor:pointer">Cancel</button>' +
-    '</td>' +
-  '</tr></tfoot>';
+  h+='<tfoot><tr id="atr-pipe"><td colspan="19" style="padding:4px 8px 8px"><button onclick="showAddRow(\'pipe\')" style="background:none;border:0.5px dashed var(--border2);border-radius:4px;color:var(--text4);font-size:11px;padding:5px 14px;cursor:pointer">+ Add project</button></td></tr><tr id="arf-pipe" style="display:none;background:var(--bg2)"><td><input id="nc-pipe" type="text" placeholder="Client name" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:120px"></td><td><input id="na-pipe" type="text" placeholder="Address" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:110px"></td><td><select id="ncat-pipe" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px"><option value="tp">Town Planning</option><option value="pm">PM</option><option value="dev">Development</option></select></td><td style="color:var(--text4);font-size:10px;padding:6px 8px">Pipeline</td><td><input id="nf-pipe" type="number" placeholder="Monthly $" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:80px;text-align:right"></td><td><input id="np-pipe" type="number" placeholder="Prob%" value="50" min="0" max="100" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:55px;text-align:right"></td><td colspan="13"><button onclick="submitNewProject(\'pipe\')" style="background:var(--blue);border:none;border-radius:4px;color:#fff;font-size:11px;font-weight:500;padding:4px 12px;cursor:pointer;margin-right:6px">+ Add</button><button onclick="cancelAdd(\'pipe\')" style="background:none;border:0.5px solid var(--border2);border-radius:4px;color:var(--text4);font-size:11px;padding:4px 10px;cursor:pointer">Cancel</button></td></tr></tfoot>';
   h+='</table></div>';
   el.innerHTML=h;
 
@@ -1892,7 +1870,8 @@ function submitNewProject(s){
   var cat=(document.getElementById('ncat-'+s)||{}).value||'tp';
   var status=s==='pipe'?'pipeline':'committed';
   var fee=parseFloat((document.getElementById('nf-'+s)||{}).value)||0;
-  var prob=status==='committed'?100:50;
+  var probEl=document.getElementById('np-'+s);
+  var prob=probEl?(parseFloat(probEl.value)||50):100;
   if(!client.trim()){alert('Enter client name');return;}
   var fees=new Array(12).fill(fee);
   var np={id:Date.now(),client:client,addr:addr,cat:cat,status:status,prob:prob,fees:fees,lossReason:'',notes:'',noteTag:'General',noteDate:''};
