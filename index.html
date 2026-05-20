@@ -1854,10 +1854,13 @@ function showAddRow(s){var t=document.getElementById('atr-'+s);var f=document.ge
   var client=(document.getElementById('nc-'+s)||{}).value||'';
   var addr=(document.getElementById('na-'+s)||{}).value||'--';
   var cat=(document.getElementById('ncat-'+s)||{}).value||'tp';
-  var status = s==='pipe' ? 'pipeline' : 'committed';
+  // Detect active tab to set correct status
+  var activeProjTab = document.querySelector('#projTabs .vt.on');
+  var activeTabTxt = activeProjTab ? activeProjTab.textContent.trim().toLowerCase() : '';
+  var status = (activeTabTxt.indexOf('pipeline')>-1) ? 'pipeline' : 'committed';
   var fee=parseFloat((document.getElementById('nf-'+s)||{}).value)||0;
   var probEl=document.getElementById('np-'+s);
-  var prob=probEl?(parseFloat(probEl.value)||50):50;
+  var prob=probEl?(parseFloat(probEl.value)||50):(status==='committed'?100:50);
   if(!client.trim()){alert('Enter client name');return;}
   var fees=new Array(12).fill(fee);
   var np={id:Date.now(),client:client,addr:addr,cat:cat,status:status,prob:prob,fees:fees,lossReason:'',notes:'',noteTag:'General',noteDate:''};
@@ -1870,4 +1873,4 @@ function showAddRow(s){var t=document.getElementById('atr-'+s);var f=document.ge
 </script>
 <script>var _ms=document.querySelectorAll("script");var _mm=Array.from(_ms).find(function(s){return s.textContent.length>10000;});if(_mm&&typeof goto==="undefined"){(0,eval)(_mm.textContent);}<\/script>
 </body>
-<!-- col-fix:1779245926896 --><!-- inline-add:1779246533839 --><!-- status-fix:1779250797899 --><!-- pipe-status:1779250922521 --></html>
+<!-- col-fix:1779245926896 --><!-- inline-add:1779246533839 --><!-- status-fix:1779250797899 --><!-- pipe-status:1779250922521 --><!-- tab-status:1779251024407 --></html>
