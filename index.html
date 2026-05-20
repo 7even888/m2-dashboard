@@ -1843,7 +1843,7 @@ function editSalesTarget() {
   inp.focus(); inp.select();
   function done() {
     var v = parseFloat(inp.value);
-    if (v > 0) { window.SALES_TARGET = v; localStorage.setItem('m2_sales_target', v); }
+    if (v > 0) { window.SALES_TARGET = v; localStorage.setItem('m2_sales_target', v); var db=getDB(); if(db){db.from('settings').upsert({key:'sales_target',value:String(v)},{onConflict:'key'});} }
     el.textContent = '$' + Math.round(window.SALES_TARGET).toLocaleString();
     refreshProjects();
   }
