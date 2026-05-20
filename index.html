@@ -637,65 +637,7 @@ table.pl tr.npr td:first-child { text-align: left; }
         <button class="vt"     onclick="showProjTab('chart',this)">Revenue Chart</button>
       </div>
 
-      <!-- Add project bar -->
-      <div id="add-proj-bar" style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:12px">
-        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;font-weight:600">+ Add new project</div>
-        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
-          <div style="flex:2;min-width:130px">
-            <div class="fi-label">Client name</div>
-            <input id="np-client" placeholder="e.g. Smith Holdings" class="fi">
-          </div>
-          <div style="flex:2;min-width:130px">
-            <div class="fi-label">Project address</div>
-            <input id="np-addr" placeholder="e.g. 42 High St, Richmond" class="fi">
-          </div>
-          <div style="flex:1;min-width:90px">
-            <div class="fi-label">Category</div>
-            <select id="np-cat" class="fi">
-              <option value="tp">Town Planning</option>
-              <option value="pm">PM</option>
-              <option value="pmdm">PM/DM</option>
-              <option value="super">Super</option>
-              <option value="all">All</option>
-              <option value="modular">ModularPM</option>
-            </select>
-          </div>
-          <div style="flex:1;min-width:110px">
-            <div class="fi-label">Status</div>
-            <select id="np-status" class="fi" onchange="updateNewProb()">
-              <option value="committed">Committed</option>
-              <option value="met">Met Client</option>
-              <option value="proposal">Issued Proposal</option>
-              <option value="awaiting">Awaiting Decision</option>
-            </select>
-          </div>
-          <div style="flex:0;min-width:60px">
-            <div class="fi-label">Prob %</div>
-            <input id="np-prob" type="number" value="100" min="0" max="100" class="fi" style="font-family:var(--font-mono)">
-          </div>
-          <div style="flex:0;min-width:70px">
-            <div class="fi-label">Start</div>
-            <select id="np-start" class="fi">
-              <option value="0">Jul</option><option value="1">Aug</option><option value="2">Sep</option><option value="3">Oct</option>
-              <option value="4">Nov</option><option value="5">Dec</option><option value="6">Jan</option><option value="7">Feb</option>
-              <option value="8">Mar</option><option value="9">Apr</option><option value="10">May</option><option value="11">Jun</option>
-            </select>
-          </div>
-          <div style="flex:0;min-width:70px">
-            <div class="fi-label">End</div>
-            <select id="np-end" class="fi">
-              <option value="11">Jun</option><option value="0">Jul</option><option value="1">Aug</option><option value="2">Sep</option>
-              <option value="3">Oct</option><option value="4">Nov</option><option value="5">Dec</option><option value="6">Jan</option>
-              <option value="7">Feb</option><option value="8">Mar</option><option value="9">Apr</option><option value="10">May</option>
-            </select>
-          </div>
-          <div style="flex:0;min-width:75px">
-            <div class="fi-label">Monthly fee $</div>
-            <input id="np-fee" type="number" placeholder="5000" class="fi" style="font-family:var(--font-mono)">
-          </div>
-          <button onclick="addProject()" style="background:var(--green-bg);color:var(--green);border:0.5px solid var(--green-bd);border-radius:6px;padding:7px 16px;font-size:12px;font-family:var(--font-sans);cursor:pointer;white-space:nowrap;align-self:flex-end">+ Add</button>
-        </div>
-      </div>
+            </div>
 
       <!-- All Projects panel -->
       <div id="proj-panel-all" class="proj-tab-panel">
@@ -1471,7 +1413,8 @@ function buildGridTable(rows, showProb=true){
     else{h+='<td style="padding:2px 8px 8px;text-align:right;font-size:10px;font-weight:500;color:var(--red)">($'+absK+'K)</td>';}
   });
   h+='<td></td><td></td><td></td></tr>';
-  h+='</tbody></table></div>';
+  h+='<tfoot><tr id="atr-all"><td colspan="19" style="padding:4px 8px 8px"><button onclick="showAddRow(\'all\')" style="background:none;border:0.5px dashed var(--border2);border-radius:4px;color:var(--text4);font-size:11px;padding:5px 14px;cursor:pointer">+ Add project</button></td></tr><tr id="arf-all" style="display:none;background:var(--bg2)"><td><input id="nc-all" type="text" placeholder="Client name" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:120px"></td><td><input id="na-all" type="text" placeholder="Address" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:110px"></td><td><select id="ncat-all" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px"><option value="tp">Town Planning</option><option value="pm">PM</option><option value="dev">Development</option></select></td><td><select id="nst-all" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px"><option value="committed">Committed</option><option value="pipeline">Pipeline</option></select></td><td><input id="nf-all" type="number" placeholder="Monthly $" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:80px;text-align:right"></td><td colspan="14"><button onclick="submitNewProject(\'all\')" style="background:var(--blue);border:none;border-radius:4px;color:#fff;font-size:11px;font-weight:500;padding:4px 12px;cursor:pointer;margin-right:6px">+ Add</button><button onclick="cancelAdd(\'all\')" style="background:none;border:0.5px solid var(--border2);border-radius:4px;color:var(--text4);font-size:11px;padding:4px 10px;cursor:pointer">Cancel</button></td></tr></tfoot>';
+  h+='</table></div>';
   return h;
 }
 
@@ -1601,7 +1544,8 @@ function renderMetrics(){
   h+='<td>$'+(totalP/1000).toFixed(0)+'K</td>';
   h+='<td style="color:var(--amber)">$'+(totalW/1000).toFixed(0)+'K</td>';
   h+='<td style="color:var(--blue)">$'+((totalC+totalW)/1000).toFixed(0)+'K</td><td>100%</td></tr>';
-  h+='</tbody></table></div>';
+  h+='<tfoot><tr id="atr-pipe"><td colspan="19" style="padding:4px 8px 8px"><button onclick="showAddRow(\'pipe\')" style="background:none;border:0.5px dashed var(--border2);border-radius:4px;color:var(--text4);font-size:11px;padding:5px 14px;cursor:pointer">+ Add project</button></td></tr><tr id="arf-pipe" style="display:none;background:var(--bg2)"><td><input id="nc-pipe" type="text" placeholder="Client name" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:120px"></td><td><input id="na-pipe" type="text" placeholder="Address" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:110px"></td><td><select id="ncat-pipe" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px"><option value="tp">Town Planning</option><option value="pm">PM</option><option value="dev">Development</option></select></td><td><select id="nst-pipe" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px"><option value="pipeline">Pipeline</option><option value="committed">Committed</option></select></td><td><input id="nf-pipe" type="number" placeholder="Monthly $" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:80px;text-align:right"></td><td colspan="14"><button onclick="submitNewProject(\'pipe\')" style="background:var(--blue);border:none;border-radius:4px;color:#fff;font-size:11px;font-weight:500;padding:4px 12px;cursor:pointer;margin-right:6px">+ Add</button><button onclick="cancelAdd(\'pipe\')" style="background:none;border:0.5px solid var(--border2);border-radius:4px;color:var(--text4);font-size:11px;padding:4px 10px;cursor:pointer">Cancel</button></td></tr></tfoot>';
+  h+='</table></div>';
   el.innerHTML=h;
 
   // Charts
@@ -1906,6 +1850,7 @@ function editSalesTarget() {
   inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') inp.blur(); });
 }
 
+function showAddRow(s){var t=document.getElementById('atr-'+s);var f=document.getElementById('arf-'+s);if(t)t.style.display='none';if(f){f.style.display='';var i=document.getElementById('nc-'+s);if(i)i.focus();}}function cancelAdd(s){var t=document.getElementById('atr-'+s);var f=document.getElementById('arf-'+s);if(t)t.style.display='';if(f)f.style.display='none';}function submitNewProject(s){var client=(document.getElementById('nc-'+s)||{}).value||'';var addr=(document.getElementById('na-'+s)||{}).value||'--';var cat=(document.getElementById('ncat-'+s)||{}).value||'tp';var status=(document.getElementById('nst-'+s)||{}).value||'committed';var fee=parseFloat((document.getElementById('nf-'+s)||{}).value)||0;if(!client.trim()){return;}var fees=new Array(12).fill(fee);var np={id:Date.now(),client:client,addr:addr,cat:cat,status:status,prob:status==='committed'?100:50,fees:fees,lossReason:'',notes:'',noteTag:'General',noteDate:''};PROJECTS.push(np);var db=getDB();if(db){db.from('projects').insert({client:np.client,addr:np.addr,cat:np.cat,status:np.status,prob:np.prob,fees:np.fees,loss_reason:'',notes:'',note_tag:'General',note_date:''}).select().single().then(function(r){if(r.data)np.id=r.data.id;});}save();refreshProjects();}
 // Safari compatibility: expose all functions as window globals
 (function() {
   var toExpose = [
@@ -1926,4 +1871,4 @@ function editSalesTarget() {
 </script>
 <script>var _ms=document.querySelectorAll("script");var _mm=Array.from(_ms).find(function(s){return s.textContent.length>10000;});if(_mm&&typeof goto==="undefined"){(0,eval)(_mm.textContent);}<\/script>
 </body>
-<!-- col-fix:1779245926896 --></html>
+<!-- col-fix:1779245926896 --><!-- inline-add:1779246533839 --></html>
