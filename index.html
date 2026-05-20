@@ -630,12 +630,7 @@ table.pl tr.npr td:first-child { text-align: left; }
       <!-- Tabs -->
       <div class="vtabs" id="projTabs">
         <button class="vt on"  onclick="showProjTab('all',this)">All Projects</button>
-        <button class="vt"     onclick="showProjTab('contracted',this)">Contracted</button>
-        <button class="vt"     onclick="showProjTab('pipeline',this)">Pipeline / Deal Flow</button>
-        <button class="vt"     onclick="showProjTab('lost',this)">Lost</button>
-        <button class="vt"     onclick="showProjTab('metrics',this)">Metrics</button>
-        <button class="vt"     onclick="showProjTab('chart',this)">Revenue Chart</button>
-      </div>
+        </div>
 
             </div>
 
@@ -1854,13 +1849,10 @@ function showAddRow(s){var t=document.getElementById('atr-'+s);var f=document.ge
   var client=(document.getElementById('nc-'+s)||{}).value||'';
   var addr=(document.getElementById('na-'+s)||{}).value||'--';
   var cat=(document.getElementById('ncat-'+s)||{}).value||'tp';
-  // Detect active tab to set correct status
-  var activeProjTab = document.querySelector('#projTabs .vt.on');
-  var activeTabTxt = activeProjTab ? activeProjTab.textContent.trim().toLowerCase() : '';
-  var status = (activeTabTxt.indexOf('pipeline')>-1) ? 'pipeline' : 'committed';
+  var statusEl=document.getElementById('nst-'+s);
+  var status=statusEl?statusEl.value:'committed';
   var fee=parseFloat((document.getElementById('nf-'+s)||{}).value)||0;
-  var probEl=document.getElementById('np-'+s);
-  var prob=probEl?(parseFloat(probEl.value)||50):(status==='committed'?100:50);
+  var prob=status==='committed'?100:50;
   if(!client.trim()){alert('Enter client name');return;}
   var fees=new Array(12).fill(fee);
   var np={id:Date.now(),client:client,addr:addr,cat:cat,status:status,prob:prob,fees:fees,lossReason:'',notes:'',noteTag:'General',noteDate:''};
@@ -1873,4 +1865,4 @@ function showAddRow(s){var t=document.getElementById('atr-'+s);var f=document.ge
 </script>
 <script>var _ms=document.querySelectorAll("script");var _mm=Array.from(_ms).find(function(s){return s.textContent.length>10000;});if(_mm&&typeof goto==="undefined"){(0,eval)(_mm.textContent);}<\/script>
 </body>
-<!-- col-fix:1779245926896 --><!-- inline-add:1779246533839 --><!-- status-fix:1779250797899 --><!-- pipe-status:1779250922521 --><!-- tab-status:1779251024407 --></html>
+<!-- col-fix:1779245926896 --><!-- inline-add:1779246533839 --><!-- status-fix:1779250797899 --><!-- pipe-status:1779250922521 --><!-- tab-status:1779251024407 --><!-- clean-tabs:1779251166681 --></html>
