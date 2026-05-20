@@ -1462,7 +1462,7 @@ function buildGridTable(rows, showProb=true){
   h+='<td style="color:var(--green)">$'+(totalFY/1000).toFixed(0)+'K</td><td></td><td></td></tr>';
   // VS TARGET ROW
   const st=window.SALES_TARGET||125000;
-  h+='<tr style="background:transparent"><td colspan="2" style="font-size:9px;color:var(--text4);text-transform:uppercase;letter-spacing:.07em;padding:2px 8px 8px">vs target</td>';
+  h+='<tr style="background:transparent"><td colspan="4" style="font-size:9px;color:var(--text4);text-transform:uppercase;letter-spacing:.07em;padding:2px 8px 8px">vs target</td>';
   monthTotals.forEach(function(mo){
     if(!mo){h+='<td style="padding:2px 8px 8px;text-align:right;font-size:10px;color:var(--text4)">—</td>';return;}
     const diff=mo-st;
@@ -1926,4 +1926,4 @@ function editSalesTarget() {
 </script>
 <script>var _ms=document.querySelectorAll("script");var _mm=Array.from(_ms).find(function(s){return s.textContent.length>10000;});if(_mm&&typeof goto==="undefined"){(0,eval)(_mm.textContent);}<\/script>
 </body>
-</html>
+<!-- col-fix:1779245926896 --></html>
