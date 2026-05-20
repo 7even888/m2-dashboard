@@ -511,7 +511,7 @@ table.pl tr.npr td:first-child { text-align: left; }
     <!-- ═══════════════════ P&L MONITOR ═══════════════════ -->
     <div id="panel-pl" class="panel">
       <div class="kg kg-5" style="margin-bottom:14px">
-        <div class="k sa"><div class="kl">Sales target <span class="stag sg">Pipeline</span></div><div class="kv up">$125,794</div><div class="ks">63% achieved this month</div><div class="bw"><div class="bb" style="width:63%;background:var(--green)"></div></div></div>
+        <div class="k sa" style="cursor:pointer" onclick="editSalesTarget()"><div class="kl">Sales target <span class="stag sg">Pipeline</span> <span style="font-size:9px;color:var(--blue)">&#9998;</span></div><div class="kv up">$125,794</div><div class="ks">63% achieved this month</div><div class="bw"><div class="bb" style="width:63%;background:var(--green)"></div></div></div>
         <div class="k hi"><div class="kl">EBITDA margin</div><div class="kv up">6.1%</div><div class="ks">$7,618 / month</div><div class="bw"><div class="bb" style="width:31%;background:var(--green)"></div></div></div>
         <div class="k hi"><div class="kl">Revenue vs budget</div><div class="kv am">$80,000</div><div class="ks">$(21.1K) · −20.9%</div><div class="bw"><div class="bb" style="width:79%;background:var(--amber)"></div></div></div>
         <div class="k"><div class="kl">YoY Revenue <span class="stag sx">Xero</span></div><div class="kv up">+42%</div><div class="ks">vs same month last year</div><div class="bw"><div class="bb" style="width:100%;background:var(--green)"></div></div></div>
@@ -1451,12 +1451,26 @@ function buildGridTable(rows, showProb=true){
 
   // Totals row
   h+='<tr class="totals-row"><td colspan="'+(totalFixedCols)+'" class="left">Total . '+rows.length+' project'+(rows.length!==1?'s':'')+'</td>';
+  // Build month totals and vs-target row
+  const monthTotals=[];
   MO.forEach((_,mi)=>{
     const mo=rows.reduce((s,p)=>s+(p.fees[mi]||0),0);
+    monthTotals.push(mo);
     h+='<td style="'+(mo>0?'color:var(--blue)':'color:var(--text4)')+'">$'+(mo/1000).toFixed(0)+'K</td>';
   });
   const totalFY=rows.reduce((s,p)=>s+projFYTotal(p),0);
   h+='<td style="color:var(--green)">$'+(totalFY/1000).toFixed(0)+'K</td><td></td><td></td></tr>';
+  // VS TARGET ROW
+  const st=window.SALES_TARGET||125000;
+  h+='<tr style="background:transparent"><td colspan="2" style="font-size:9px;color:var(--text4);text-transform:uppercase;letter-spacing:.07em;padding:2px 8px 8px">vs target</td>';
+  monthTotals.forEach(function(mo){
+    if(!mo){h+='<td style="padding:2px 8px 8px;text-align:right;font-size:10px;color:var(--text4)">—</td>';return;}
+    const diff=mo-st;
+    const absK=Math.round(Math.abs(diff)/1000);
+    if(diff>=0){h+='<td style="padding:2px 8px 8px;text-align:right;font-size:10px;font-weight:500;color:var(--green)">+$'+absK+'K</td>';}
+    else{h+='<td style="padding:2px 8px 8px;text-align:right;font-size:10px;font-weight:500;color:var(--red)">($'+absK+'K)</td>';}
+  });
+  h+='<td></td><td></td><td></td></tr>';
   h+='</tbody></table></div>';
   return h;
 }
@@ -1872,62 +1886,24 @@ else{initDashboard();}
 </script>
 <script>
 
-// Sales target
-var SALES_TARGET = parseFloat(localStorage.getItem('m2_sales_target') || '125000');
 
 function editSalesTarget() {
   var el = document.getElementById('ov-sales');
   if (!el || el.querySelector('input')) return;
   var inp = document.createElement('input');
   inp.type = 'number';
-  inp.value = SALES_TARGET;
+  inp.value = window.SALES_TARGET;
   inp.style.cssText = 'background:var(--bg);border:1px solid var(--blue);border-radius:4px;color:var(--blue);font-size:18px;font-weight:500;width:140px;padding:2px 8px;font-family:var(--font-mono)';
   el.innerHTML = ''; el.appendChild(inp);
   inp.focus(); inp.select();
   function done() {
     var v = parseFloat(inp.value);
-    if (v > 0) { SALES_TARGET = v; localStorage.setItem('m2_sales_target', v); }
-    el.textContent = '$' + Math.round(SALES_TARGET).toLocaleString();
-    updateVsTargetRow();
+    if (v > 0) { window.SALES_TARGET = v; localStorage.setItem('m2_sales_target', v); }
+    el.textContent = '$' + Math.round(window.SALES_TARGET).toLocaleString();
+    refreshProjects();
   }
   inp.addEventListener('blur', done);
   inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') inp.blur(); });
-}
-
-function updateVsTargetRow() {
-  // Find or create the vs-target row after the monthly total row in the project table
-  var totalRows = document.querySelectorAll('.proj-grid-wrap tr.proj-total');
-  totalRows.forEach(function(totalRow) {
-    // Get all td values from this total row (skip first 2: label cols)
-    var tds = totalRow.querySelectorAll('td');
-    // Check if vs-target row already exists after this total row
-    var next = totalRow.nextElementSibling;
-    var vsRow;
-    if (next && next.classList.contains('vs-target-row')) {
-      vsRow = next;
-    } else {
-      vsRow = document.createElement('tr');
-      vsRow.className = 'vs-target-row';
-      vsRow.style.cssText = 'background:transparent';
-      totalRow.parentNode.insertBefore(vsRow, totalRow.nextSibling);
-    }
-    // Build vs-target cells
-    var cells = '<td colspan="2" style="font-size:9px;color:var(--text4);text-transform:uppercase;letter-spacing:.07em;padding:3px 8px 6px">vs target</td>';
-    for (var i = 2; i < tds.length - 1; i++) {
-      var txt = tds[i].textContent.replace(/[^0-9.]/g,'');
-      var val = parseFloat(txt) * 1000;
-      if (!val) { cells += '<td style="padding:3px 8px 6px;text-align:right;font-size:10px;color:var(--text4)">—</td>'; continue; }
-      var diff = val - SALES_TARGET;
-      var fmt = '$' + Math.round(Math.abs(diff)/1000) + 'K';
-      if (diff >= 0) {
-        cells += '<td style="padding:3px 8px 6px;text-align:right;font-size:10px;font-weight:500;color:var(--green)">+' + fmt + '</td>';
-      } else {
-        cells += '<td style="padding:3px 8px 6px;text-align:right;font-size:10px;font-weight:500;color:var(--red)">(' + fmt + ')</td>';
-      }
-    }
-    cells += '<td></td>';
-    vsRow.innerHTML = cells;
-  });
 }
 
 // Safari compatibility: expose all functions as window globals
@@ -1935,7 +1911,7 @@ function updateVsTargetRow() {
   var toExpose = [
     'goto','save','refreshProjects','initCharts','loadAllData',
     'showStatus','getDB','setFY','setFY26Mo','showProjTab',
-    'editSalesTarget','updateSalesTargetUI','editSalesTarget','updateVsTargetRow','exportData','importData',
+    'editSalesTarget','updateSalesTargetUI','exportData','importData',
     'clearSave','addProject','deleteProject','renderPLTable3',
     'renderPLTableFY','initDashboard'
   ];
@@ -1949,69 +1925,5 @@ function updateVsTargetRow() {
 })();
 </script>
 <script>var _ms=document.querySelectorAll("script");var _mm=Array.from(_ms).find(function(s){return s.textContent.length>10000;});if(_mm&&typeof goto==="undefined"){(0,eval)(_mm.textContent);}<\/script>
-
-<script>
-function insertVsTargetRows() {
-  var tables = document.querySelectorAll('.proj-grid-wrap table');
-  tables.forEach(function(tbl) {
-    // Remove existing vs-target rows
-    tbl.querySelectorAll('.vs-target-row').forEach(function(r){ r.remove(); });
-    // Find total row (last row in tbody)
-    var rows = tbl.querySelectorAll('tbody tr');
-    if (!rows.length) return;
-    var totalRow = rows[rows.length - 1];
-    // Get month column tds (skip first 2: client + status cols, skip last 2: FY total + notes)
-    var tds = totalRow.querySelectorAll('td');
-    if (tds.length < 4) return;
-    // Build vs target row
-    var tr = document.createElement('tr');
-    tr.className = 'vs-target-row';
-    // Label cell spanning first 2 cols
-    var labelTd = document.createElement('td');
-    labelTd.colSpan = 2;
-    labelTd.style.cssText = 'font-size:9px;color:var(--text4);text-transform:uppercase;letter-spacing:.07em;padding:2px 8px 6px;text-align:left';
-    labelTd.textContent = 'vs target';
-    tr.appendChild(labelTd);
-    // Month cells (indices 2 to tds.length-3)
-    for (var i = 2; i < tds.length - 2; i++) {
-      var td = document.createElement('td');
-      td.style.cssText = 'padding:2px 8px 6px;text-align:right';
-      var raw = tds[i].textContent.replace(/[^0-9.]/g,'').trim();
-      var val = parseFloat(raw) * 1000;
-      if (!raw || val === 0) {
-        td.innerHTML = '<span style="color:var(--text4);font-size:10px">—</span>';
-      } else {
-        var diff = val - (window.SALES_TARGET || 125000);
-        var absK = Math.round(Math.abs(diff)/1000);
-        if (diff >= 0) {
-          td.innerHTML = '<span style="color:var(--green);font-size:10px;font-weight:500">+
-<!-- sales-v2:1779241983552 --><!-- vs-row-v3:1779242297687 --></html> + absK + 'K</span>';
-        } else {
-          td.innerHTML = '<span style="color:var(--red);font-size:10px;font-weight:500">(
-<!-- sales-v2:1779241983552 --></html> + absK + 'K)</span>';
-        }
-      }
-      tr.appendChild(td);
-    }
-    // Empty cells for FY total + notes cols
-    for (var j = 0; j < 2; j++) {
-      var etd = document.createElement('td');
-      tr.appendChild(etd);
-    }
-    totalRow.parentNode.insertBefore(tr, totalRow.nextSibling);
-  });
-}
-
-// Run after page loads and after any refresh
-var _origRefresh = window.refreshProjects;
-window.refreshProjects = function() {
-  _origRefresh && _origRefresh.apply(this, arguments);
-  setTimeout(insertVsTargetRows, 100);
-};
-
-// Also run now on load
-document.addEventListener('DOMContentLoaded', function(){ setTimeout(insertVsTargetRows, 500); });
-setTimeout(insertVsTargetRows, 1000);
-</script>
 </body>
-<!-- sales-v2:1779241983552 --></html>
+</html>
