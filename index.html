@@ -1,5 +1,4 @@
-<!DOCTYP
-    '<td><input id="np-pipe" type="number" placeholder="Prob%" value="50" min="0" max="100" style="background:var(--bg);border:0.5px solid var(--border2);border-radius:4px;color:var(--text);font-size:11px;padding:4px 6px;width:55px;text-align:right"></td>' +E html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1157,6 +1156,8 @@ function saveFY26(key, val, ebitdaEl) {
 function fmt2(n) { return (n<0?'-$':'$')+Math.abs(n).toLocaleString(); }
 function calcNorm() {
   const adjs = [1,2,3,4,5].map(i=>parseFloat(document.getElementById('adj'+i).value)||0);
+  // Persist the add-back figures so they survive a refresh.
+  try { localStorage.setItem('m2co_adjustments', JSON.stringify(adjs)); } catch(e) {}
   const total = adjs.reduce((a,b)=>a+b,0);
   const normed = 59376 + total;
   document.getElementById('total-adj').textContent = fmt2(total);
@@ -1614,175 +1615,211 @@ function showStatus(msg, color='var(--green)') {
   if (el) { el.textContent = msg; el.style.color = color; setTimeout(()=>{ if(el) el.style.color='var(--text4)'; }, 3000); }
 }
 
-// -- LOAD DATA FROM SUPABASE --
+// =====================================================
+//  PERSISTENCE LAYER
+//  -----------------------------------------------------
+//  localStorage is the AUTHORITATIVE store. It is written
+//  synchronously on every edit, so data always survives a
+//  refresh / tab close. Supabase is a best-effort cloud
+//  sync on top -- if it is unavailable or misconfigured it
+//  can NEVER cause data loss and never blocks the UI.
+// =====================================================
+var SAVE_KEY = 'm2co_dashboard_v1';
+
+// -- LOCAL STORAGE (authoritative) --------------------
+function persistLocal() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      PROJECTS: PROJECTS,
+      nextId: nextId,
+      savedAt: new Date().toISOString()
+    }));
+    return true;
+  } catch (e) {
+    console.error('localStorage save failed:', e);
+    return false;
+  }
+}
+
+function loadLocal() {
+  try {
+    var raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    var s = JSON.parse(raw);
+    if (s && Array.isArray(s.PROJECTS)) return s;
+  } catch (e) {
+    console.error('localStorage load failed:', e);
+  }
+  return null;
+}
+
+// Normalise a Supabase row into the in-memory project shape
+function mapDbRow(p) {
+  return {
+    id: p.id,
+    client: p.client || '',
+    addr: p.addr || '--',
+    cat: p.cat || 'tp',
+    status: p.status || 'committed',
+    prob: (p.prob === 0 || p.prob) ? p.prob : 100,
+    fees: Array.isArray(p.fees)
+      ? p.fees
+      : (typeof p.fees === 'string' ? (function(){ try { return JSON.parse(p.fees); } catch(e){ return new Array(12).fill(0); } })() : new Array(12).fill(0)),
+    lossReason: p.loss_reason || '',
+    notes: p.notes || '',
+    noteTag: p.note_tag || 'General',
+    noteDate: p.note_date || ''
+  };
+}
+
+// -- LOAD ---------------------------------------------
+// Priority: local storage (this browser's latest state) wins.
+// Only fall back to the cloud when there is nothing stored
+// locally yet (e.g. first run on a fresh browser).
 async function loadAllData() {
   showStatus('Loading...', 'var(--amber)');
+
+  var local = loadLocal();
+  if (local) {
+    PROJECTS = local.PROJECTS;
+    nextId = local.nextId
+      || (PROJECTS.length ? Math.max.apply(null, PROJECTS.map(function(p){ return Number(p.id) || 0; })) + 1 : 25);
+    showStatus('Loaded ' + PROJECTS.length + ' projects', 'var(--blue)');
+    return;
+  }
+
+  // No local data yet -- try to seed from the cloud.
+  var db = getDB();
+  if (!db) { showStatus('No saved data yet -- add your first project', 'var(--text3)'); return; }
   try {
-    var db=getDB();if(!db){showStatus('No DB','var(--red)');return false;}
-    const { data, error } = await db.from('projects').select('*').order('id');
-    if (error) throw error;
-    if (data && data.length > 0) {
-      PROJECTS = data.map(p => ({
-        id: p.id,
+    var res = await db.from('projects').select('*').order('id');
+    if (res.error) throw res.error;
+    if (res.data && res.data.length > 0) {
+      PROJECTS = res.data.map(mapDbRow);
+      nextId = Math.max.apply(null, PROJECTS.map(function(p){ return Number(p.id) || 0; })) + 1;
+      persistLocal(); // mirror the cloud seed into local storage
+      showStatus('Loaded ' + PROJECTS.length + ' projects (cloud)', 'var(--blue)');
+    } else {
+      showStatus('No saved data yet -- add your first project', 'var(--text3)');
+    }
+  } catch (e) {
+    console.warn('Cloud load failed (working from local only):', e && e.message);
+    showStatus('Working locally', 'var(--amber)');
+  }
+}
+
+// -- SAVE ---------------------------------------------
+// Step 1 (synchronous): write local storage NOW. This is the
+//   single source of truth and is what fixes the refresh bug.
+// Step 2 (debounced, best-effort): push to Supabase. Wrapped
+//   so a failure only logs a warning -- it never throws.
+var saveTimer = null;
+function save() {
+  var okLocal = persistLocal();
+  if (okLocal) {
+    showStatus('Saved ' + new Date().toLocaleTimeString('en-AU', {hour:'2-digit', minute:'2-digit'}));
+  } else {
+    showStatus('Local save FAILED -- check browser storage', 'var(--red)');
+  }
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function(){ syncProjects(); }, 800);
+}
+
+// Best-effort cloud sync. UPSERT (not UPDATE) so brand-new
+// projects persist too. Never throws into the UI.
+async function syncProjects() {
+  var db = getDB();
+  if (!db) return; // no cloud configured -- local save already done
+  try {
+    var rows = PROJECTS.map(function(p) {
+      var row = {
         client: p.client || '',
         addr: p.addr || '--',
         cat: p.cat || 'tp',
         status: p.status || 'committed',
-        prob: p.prob || 100,
-        fees: Array.isArray(p.fees) ? p.fees : (typeof p.fees === 'string' ? JSON.parse(p.fees) : new Array(12).fill(0)),
-        lossReason: p.loss_reason || '',
+        prob: (p.prob === 0 || p.prob) ? p.prob : 100,
+        fees: p.fees || new Array(12).fill(0),
+        loss_reason: p.lossReason || '',
         notes: p.notes || '',
-        noteTag: p.note_tag || 'General',
-        noteDate: p.note_date || '',
-      }));
-      nextId = Math.max(...PROJECTS.map(p => p.id)) + 1;
-      showStatus('Loaded ' + PROJECTS.length + ' projects', 'var(--blue)');
-    } else {
-      showStatus('No data yet -- add your first project', 'var(--blue)');
-    }
-  } catch(e) {
-    console.error('Load error:', e);
-    showStatus('Load failed: ' + e.message, 'var(--red)');
+        note_tag: p.noteTag || 'General',
+        note_date: p.noteDate || ''
+      };
+      // Only send a real, DB-sized integer id. Locally-minted
+      // temp ids (Date.now()) are omitted so the DB assigns one.
+      if (typeof p.id === 'number' && p.id < 1e12) row.id = p.id;
+      return row;
+    });
+    var res = await db.from('projects').upsert(rows).select();
+    if (res.error) throw res.error;
+  } catch (e) {
+    // Cloud sync is optional -- data is already safe in local storage.
+    console.warn('Cloud sync failed (data is saved locally):', e && e.message);
   }
-}
-
-// -- SAVE TO SUPABASE --
-let saveTimer = null;
-function save() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => syncProjects(), 800);
-}
-
-async function syncProjects() {
-  showStatus('Saving...', 'var(--amber)');
-  try {
-    const rows = PROJECTS.map(p => ({
-      id: p.id < 100000 ? p.id : undefined,
-      client: p.client || '',
-      addr: p.addr || '--',
-      cat: p.cat || 'tp',
-      status: p.status || 'committed',
-      prob: p.prob || 100,
-      fees: p.fees || new Array(12).fill(0),
-      loss_reason: p.lossReason || '',
-      notes: p.notes || '',
-      note_tag: p.noteTag || 'General',
-      note_date: p.noteDate || '',
-    }));
-    var db2=getDB();if(!db2)throw new Error('No DB');
-    var errs=[];
-    for(var ii=0;ii<PROJECTS.length;ii++){var pp=PROJECTS[ii];var rr=await db2.from('projects').update({client:pp.client||'',addr:pp.addr||'--',cat:pp.cat||'tp',status:pp.status||'committed',prob:pp.prob||100,fees:pp.fees||[],loss_reason:pp.lossReason||'',notes:pp.notes||'',note_tag:pp.noteTag||'General',note_date:pp.noteDate||''}).eq('id',pp.id);if(rr.error)errs.push(rr.error.message);}
-    if(errs.length)throw new Error(errs[0]);
-    if (error) throw error;
-    showStatus('Saved ' + new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}));
-  } catch(e) {
-    console.error('Save error:', e);
-    showStatus('Save failed: ' + e.message, 'var(--red)');
-  }
-}
-
-async function addProjectToDb(p) {
-  try {
-    var db=getDB();if(!db)return null;
-    const { data, error } = await db.from('projects').insert({
-      client: p.client, addr: p.addr, cat: p.cat, status: p.status,
-      prob: p.prob, fees: p.fees, loss_reason: '', notes: '', note_tag: 'General', note_date: '',
-    }).select().single();
-    if (error) throw error;
-    return data.id;
-  } catch(e) { console.error('Insert error:', e); return null; }
 }
 
 async function deleteProjectFromDb(id) {
+  var db = getDB();
+  if (!db) return;
   try {
-    var db=getDB();if(!db)return;
-    const { error } = await db.from('projects').delete().eq('id', id);
-    if (error) throw error;
-  } catch(e) { console.error('Delete error:', e); }
+    var res = await db.from('projects').delete().eq('id', id);
+    if (res.error) throw res.error;
+  } catch (e) {
+    console.warn('Cloud delete failed:', e && e.message);
+  }
 }
 
+// -- CLEAR / RESET ------------------------------------
 async function clearSave() {
-  if (!confirm('Delete ALL project data? This cannot be undone.')) return;
-  try {
-    await supabase.from('projects').delete().neq('id', 0);
-    location.reload();
-  } catch(e) { alert('Clear failed: ' + e.message); }
+  if (!confirm('Clear all saved data and reset to defaults? This cannot be undone.')) return;
+  try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+  var db = getDB();
+  if (db) {
+    try { await db.from('projects').delete().neq('id', 0); } catch (e) {
+      console.warn('Cloud clear failed:', e && e.message);
+    }
+  }
+  location.reload();
 }
 
+// -- EXPORT / IMPORT ----------------------------------
 function exportData() {
-  const state = { PROJECTS, nextId, exportedAt: new Date().toISOString(), version: 2 };
-  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  var state = { PROJECTS: PROJECTS, nextId: nextId, exportedAt: new Date().toISOString(), version: 2 };
+  var blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
   a.href = url;
-  a.download = 'lewis-dashboard-' + new Date().toISOString().slice(0,10) + '.json';
+  a.download = 'm2co-dashboard-' + new Date().toISOString().slice(0, 10) + '.json';
   a.click();
   URL.revokeObjectURL(url);
   showStatus('Exported OK', 'var(--blue)');
 }
 
 function importData(event) {
-  const file = event.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async e => {
-    try {
-      const state = JSON.parse(e.target.result);
-      if (!state.PROJECTS) { alert('Invalid file'); return; }
-      if (!confirm('Replace all current data with import?')) return;
-      PROJECTS = state.PROJECTS;
-      await syncProjects();
-      refreshProjects();
-    } catch(err) { alert('Could not read: ' + err.message); }
-  };
-  reader.readAsText(file);
-  event.target.value = '';
-}
-
-
-function exportData() {
-  const state = { PROJECTS, nextId, exportedAt: new Date().toISOString(), version: 1 };
-  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  const date = new Date().toISOString().slice(0,10);
-  a.href     = url;
-  a.download = 'lewis-dashboard-' + date + '.json';
-  a.click();
-  URL.revokeObjectURL(url);
-  const el = document.getElementById('save-status');
-  if (el) { el.textContent = 'Exported OK'; el.style.color = 'var(--blue)'; setTimeout(()=>{if(el)el.style.color='var(--text4)';},2000); }
-}
-
-function importData(event) {
-  const file = event.target.files[0];
+  var file = event.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
+  var reader = new FileReader();
+  reader.onload = function(e) {
     try {
-      const state = JSON.parse(e.target.result);
+      var state = JSON.parse(e.target.result);
       if (!state.PROJECTS || !Array.isArray(state.PROJECTS)) {
-        alert('Invalid file -- no project data found.'); return;
+        alert('Invalid file -- no project data found.');
+        return;
       }
-      if (!confirm('This will replace all current project data with the imported file. Continue?')) return;
+      if (!confirm('Replace all current project data with the imported file?')) return;
       PROJECTS = state.PROJECTS;
-      nextId   = state.nextId || (Math.max(...PROJECTS.map(p=>p.id)) + 1);
-      save();
+      nextId = state.nextId
+        || (PROJECTS.length ? Math.max.apply(null, PROJECTS.map(function(p){ return Number(p.id) || 0; })) + 1 : 25);
+      save();              // writes local storage immediately + queues cloud sync
       refreshProjects();
       renderPLTable3();
       renderPLTableFY();
-      const el = document.getElementById('save-status');
-      if (el) { el.textContent = 'Imported OK ' + PROJECTS.length + ' projects'; el.style.color = 'var(--green)'; }
-    } catch(err) { alert('Could not read file: ' + err.message); }
+      showStatus('Imported ' + PROJECTS.length + ' projects', 'var(--green)');
+    } catch (err) {
+      alert('Could not read file: ' + err.message);
+    }
   };
   reader.readAsText(file);
-  event.target.value = ''; // reset so same file can be re-imported
-}
-
-async function clearSave() {
-  if (!confirm('Clear all saved data and reset to defaults? This cannot be undone.')) return;
-  if (window.storage) { try { await window.storage.delete(SAVE_KEY); } catch(e) {} }
-  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
-  location.reload();
+  event.target.value = ''; // reset so the same file can be re-imported
 }
 
 // -- INIT --------------------------------------------
@@ -1794,22 +1831,27 @@ function updateSalesTargetCard(){
     if(el&&!el.querySelector('input'))el.textContent='$'+Math.round(st).toLocaleString();
   }
 }
+// Restore the saved normalised-EBITDA add-back figures into their inputs.
+function restoreAdjustments(){
+  try {
+    var raw=localStorage.getItem('m2co_adjustments');
+    if(!raw)return;
+    var adjs=JSON.parse(raw);
+    if(!Array.isArray(adjs))return;
+    [1,2,3,4,5].forEach(function(i){
+      var el=document.getElementById('adj'+i);
+      if(el&&adjs[i-1]!==undefined&&adjs[i-1]!==null)el.value=adjs[i-1];
+    });
+  } catch(e) {}
+  if(typeof calcNorm==='function'){ try{ calcNorm(); }catch(e){} }
+}
 function initDashboard(){
   loadAllData().then(function(){
     refreshProjects();renderPLTable3();renderPLTableFY();
-    setTimeout(function(){
-      initCharts('overview');
-      // Restore saved sales target
-      var st=parseFloat(localStorage.getItem('m2_sales_target'));
-      if(st&&st>0){window.SALES_TARGET=st;var e=document.getElementById('ov-sales');if(e&&!e.querySelector('input'))e.textContent='$'+Math.round(st).toLocaleString();}
-    },300);
+    setTimeout(function(){initCharts('overview');updateSalesTargetCard();restoreAdjustments();},200);
   }).catch(function(e){
     refreshProjects();renderPLTable3();renderPLTableFY();
-    setTimeout(function(){
-      initCharts('overview');
-      var st=parseFloat(localStorage.getItem('m2_sales_target'));
-      if(st&&st>0){window.SALES_TARGET=st;var e=document.getElementById('ov-sales');if(e&&!e.querySelector('input'))e.textContent='$'+Math.round(st).toLocaleString();}
-    },300);
+    setTimeout(function(){initCharts('overview');updateSalesTargetCard();restoreAdjustments();},200);
   });
 }
 var CURRENT_FY=27;
@@ -1886,17 +1928,20 @@ function submitNewProject(s){
   var client=(document.getElementById('nc-'+s)||{}).value||'';
   var addr=(document.getElementById('na-'+s)||{}).value||'--';
   var cat=(document.getElementById('ncat-'+s)||{}).value||'tp';
-  var status=s==='pipe'?'pipeline':'committed';
+  // 'proposal' is a valid pipeline stage so the new project is visible in the
+  // Pipeline view; 'pipeline' on its own matches none of the status filters.
+  var status=s==='pipe'?'proposal':'committed';
   var fee=parseFloat((document.getElementById('nf-'+s)||{}).value)||0;
   var probEl=document.getElementById('np-'+s);
   var prob=probEl?(parseFloat(probEl.value)||50):100;
   if(!client.trim()){alert('Enter client name');return;}
   var fees=new Array(12).fill(fee);
-  var np={id:Date.now(),client:client,addr:addr,cat:cat,status:status,prob:prob,fees:fees,lossReason:'',notes:'',noteTag:'General',noteDate:''};
+  // Use the same sequential id scheme as addProject() so ids stay consistent
+  // and the unified upsert in syncProjects() persists it -- no separate insert.
+  var np={id:nextId++,client:client,addr:addr,cat:cat,status:status,prob:prob,fees:fees,lossReason:'',notes:'',noteTag:'General',noteDate:''};
   PROJECTS.push(np);
-  var db=getDB();
-  if(db){db.from('projects').insert({client:np.client,addr:np.addr,cat:np.cat,status:np.status,prob:np.prob,fees:np.fees,loss_reason:'',notes:'',note_tag:'General',note_date:''}).select().single().then(function(r){if(r.data)np.id=r.data.id;});}
   save();
+  cancelAdd(s);
   refreshProjects();
 }
 
@@ -1919,22 +1964,5 @@ function submitNewProject(s){
   });
 })();
 </script>
-<script>var _ms=document.querySelectorAll("script");var _mm=Array.from(_ms).find(function(s){return s.textContent.length>10000;});if(_mm&&typeof goto==="undefined"){(0,eval)(_mm.textContent);}<\/script>
 </body>
-</htmlfunction showAddRow(s){
-  var t=document.getElementById('atr-'+s);
-  var f=document.getElementById('arf-'+s);
-  if(t) t.style.display='none';
-  if(f){ f.style.display=''; var i=document.getElementById('nc-'+s); if(i) i.focus(); }
-}
-
-function cancelAdd(s){
-  var t=document.getElementById('atr-'+s);
-  var f=document.getElementById('arf-'+s);
-  if(t) t.style.display='';
-  if(f) f.style.display='none';
-}
-
-
-
->
+</html>
