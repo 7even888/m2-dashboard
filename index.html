@@ -872,6 +872,7 @@ window.PL_ROWS = [
 // -- PROJECT DATA ENGINE ------------------------------
 // Each project: client, addr, cat, status, prob(%), fees[12], lossReason
 var PROJECTS = [];
+window.SALES_TARGET = parseFloat(localStorage.getItem('m2_sales_target') || '125000');
 let nextId = 25;
 
 let currentMonthIdx = 0;
@@ -1890,7 +1891,7 @@ function submitNewProject(s){
     'editSalesTarget','updateSalesTargetUI','exportData','importData',
     'clearSave','addProject','deleteProject','renderPLTable3',
     'renderPLTableFY','initDashboard',
-    'showAddRow','cancelAdd','submitNewProject'
+    'showAddRow','cancelAdd','submitNewProject','editSalesTarget'
   ];
   toExpose.forEach(function(name) {
     try {
