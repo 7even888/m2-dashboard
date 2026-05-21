@@ -471,7 +471,7 @@ table.pl tr.npr td:first-child { text-align: left; }
     <div id="panel-overview" class="panel on">
       <div class="sl">Headline metrics</div>
       <div class="kg kg-5">
-        <div class="k sa" style="cursor:pointer" onclick="editSalesTarget()"><div class="kl">Sales target <span class="stag sg">Pipeline</span> <span style="font-size:9px;color:var(--blue)">&#9998;</span></div><div class="kv up" id="ov-sales">$125,794</div><div class="ks" id="ov-sales-sub">Target this month</div><div class="kt am">— $80K invoiced · 63%</div><div class="bw"><div class="bb" style="width:63%;background:var(--green)"></div></div></div>
+        <div class="k sa" style="cursor:pointer" onclick="editSalesTarget()"><div class="kl">Sales target <span class="stag sg">Pipeline</span> <span style="font-size:9px;color:var(--blue)">&#9998;</span></div><div class="kv up" id="ov-sales">$125,000</div><div class="ks" id="ov-sales-sub">Target this month</div><div class="kt am">— $80K invoiced · 63%</div><div class="bw"><div class="bb" style="width:63%;background:var(--green)"></div></div></div>
         <div class="k hi"><div class="kl">EBITDA margin <span class="stag sc">Composite</span></div><div class="kv up">6.1%</div><div class="ks">$7,618 / month</div><div class="kt up">↑ Beat (0.9%) budget</div><div class="bw"><div class="bb" style="width:31%;background:var(--green)"></div></div></div>
         <div class="k hi"><div class="kl">Revenue vs budget <span class="stag sx">Xero</span></div><div class="kv am">$80,000</div><div class="ks">vs $101.1K budget</div><div class="kt dn">↓ $(21.1K) · −20.9%</div><div class="bw"><div class="bb" style="width:79%;background:var(--amber)"></div></div></div>
         <div class="k hi"><div class="kl">Pipeline coverage <span class="stag sm">Model</span></div><div class="kv up">15×</div><div class="ks">$1.09M ÷ $72.5K/mo</div><div class="kt up">↑ Excellent — target 6×</div><div class="bw"><div class="bb" style="width:100%;background:var(--green)"></div></div></div>
@@ -1786,12 +1786,21 @@ async function clearSave() {
 }
 
 // -- INIT --------------------------------------------
+function updateSalesTargetCard(){
+  var st=parseFloat(localStorage.getItem('m2_sales_target'));
+  if(st&&st>0){
+    window.SALES_TARGET=st;
+    var el=document.getElementById('ov-sales');
+    if(el&&!el.querySelector('input'))el.textContent='$'+Math.round(st).toLocaleString();
+  }
+}
 function initDashboard(){
   loadAllData().then(function(){
-    var st=parseFloat(localStorage.getItem('m2_sales_target'));if(st&&st>0){window.SALES_TARGET=st;var el=document.getElementById('ov-sales');if(el&&!el.querySelector('input'))el.textContent='
+    refreshProjects();renderPLTable3();renderPLTableFY();
+    setTimeout(function(){initCharts('overview');updateSalesTargetCard();},200);
   }).catch(function(e){
     refreshProjects();renderPLTable3();renderPLTableFY();
-    setTimeout(function(){initCharts('overview');},100);
+    setTimeout(function(){initCharts('overview');updateSalesTargetCard();},200);
   });
 }
 var CURRENT_FY=27;
@@ -1890,140 +1899,7 @@ function submitNewProject(s){
     'editSalesTarget','updateSalesTargetUI','exportData','importData',
     'clearSave','addProject','deleteProject','renderPLTable3',
     'renderPLTableFY','initDashboard',
-    'showAddRow','cancelAdd','submitNewProject','editSalesTarget'
-  ];
-  toExpose.forEach(function(name) {
-    try {
-      if (typeof eval(name) === 'function' && !window[name]) {
-        window[name] = eval(name);
-      }
-    } catch(e) {}
-  });
-})();
-</script>
-<script>var _ms=document.querySelectorAll("script");var _mm=Array.from(_ms).find(function(s){return s.textContent.length>10000;});if(_mm&&typeof goto==="undefined"){(0,eval)(_mm.textContent);}<\/script>
-</body>
-</htmlfunction showAddRow(s){
-  var t=document.getElementById('atr-'+s);
-  var f=document.getElementById('arf-'+s);
-  if(t) t.style.display='none';
-  if(f){ f.style.display=''; var i=document.getElementById('nc-'+s); if(i) i.focus(); }
-}
-
-function cancelAdd(s){
-  var t=document.getElementById('atr-'+s);
-  var f=document.getElementById('arf-'+s);
-  if(t) t.style.display='';
-  if(f) f.style.display='none';
-}
-
-
-
->+Math.round(st).toLocaleString();}
-    refreshProjects();renderPLTable3();renderPLTableFY();
-    setTimeout(function(){initCharts('overview');},100);
-  }).catch(function(e){
-    refreshProjects();renderPLTable3();renderPLTableFY();
-    setTimeout(function(){initCharts('overview');},100);
-  });
-}
-var CURRENT_FY=27;
-function setFY(fy,el){
-  CURRENT_FY=fy;
-  document.querySelectorAll('#fyTg .tb').forEach(function(b){b.classList.remove('on');});
-  el.classList.add('on');
-  var sub=document.getElementById('tn-sub');
-  var monthTg=document.getElementById('monthTg');
-  var periodTg=document.getElementById('periodTg');
-  var style=document.getElementById('fy26-style');
-  if(!style){style=document.createElement('style');style.id='fy26-style';document.head.appendChild(style);}
-  if(fy===26){
-    if(sub)sub.textContent='FY26 -- May & Jun only';
-    if(monthTg)monthTg.style.display='none';
-    if(periodTg)periodTg.style.display='none';
-    style.textContent='.proj-grid-wrap table th:nth-child(n+5):nth-child(-n+14),.proj-grid-wrap table td:nth-child(n+5):nth-child(-n+14),.proj-grid-wrap table th:nth-child(17),.proj-grid-wrap table td:nth-child(17){display:none!important}';
-    var mg=document.getElementById('fy26mg');
-    if(!mg){mg=document.createElement('div');mg.className='tg';mg.id='fy26mg';mg.innerHTML='<button class="tb on" onclick="setFY26Mo(this,10)">May</button><button class="tb" onclick="setFY26Mo(this,11)">Jun</button>';document.querySelector('.tn-controls').appendChild(mg);}
-    else{mg.style.display='';}
-  }else{
-    if(sub)sub.textContent='FY27 committed + potential pipeline';
-    if(monthTg)monthTg.style.display='';
-    if(periodTg)periodTg.style.display='';
-    style.textContent='';
-    var mg=document.getElementById('fy26mg');if(mg)mg.style.display='none';
-  }
-}
-function setFY26Mo(el,mo){
-  window._fy26mo=mo;
-  document.querySelectorAll('#fy26mg .tb').forEach(function(b){b.classList.remove('on');});
-  el.classList.add('on');
-}
-
-if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',initDashboard);}
-else{initDashboard();}
-</script>
-<script>
-
-
-function editSalesTarget() {
-  var el = document.getElementById('ov-sales');
-  if (!el || el.querySelector('input')) return;
-  var inp = document.createElement('input');
-  inp.type = 'number';
-  inp.value = window.SALES_TARGET;
-  inp.style.cssText = 'background:var(--bg);border:1px solid var(--blue);border-radius:4px;color:var(--blue);font-size:18px;font-weight:500;width:140px;padding:2px 8px;font-family:var(--font-mono)';
-  el.innerHTML = ''; el.appendChild(inp);
-  inp.focus(); inp.select();
-  function done() {
-    var v = parseFloat(inp.value);
-    if (v > 0) { window.SALES_TARGET = v; localStorage.setItem('m2_sales_target', v); var db=getDB(); if(db){db.from('settings').upsert({key:'sales_target',value:String(v)},{onConflict:'key'});} }
-    el.textContent = '$' + Math.round(window.SALES_TARGET).toLocaleString();
-    refreshProjects();
-  }
-  inp.addEventListener('blur', done);
-  inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') inp.blur(); });
-}
-
-
-function showAddRow(s){
-  var t=document.getElementById('atr-'+s);
-  var f=document.getElementById('arf-'+s);
-  if(t)t.style.display='none';
-  if(f){f.style.display='';var i=document.getElementById('nc-'+s);if(i)i.focus();}
-}
-function cancelAdd(s){
-  var t=document.getElementById('atr-'+s);
-  var f=document.getElementById('arf-'+s);
-  if(t)t.style.display='';
-  if(f)f.style.display='none';
-}
-function submitNewProject(s){
-  var client=(document.getElementById('nc-'+s)||{}).value||'';
-  var addr=(document.getElementById('na-'+s)||{}).value||'--';
-  var cat=(document.getElementById('ncat-'+s)||{}).value||'tp';
-  var status=s==='pipe'?'pipeline':'committed';
-  var fee=parseFloat((document.getElementById('nf-'+s)||{}).value)||0;
-  var probEl=document.getElementById('np-'+s);
-  var prob=probEl?(parseFloat(probEl.value)||50):100;
-  if(!client.trim()){alert('Enter client name');return;}
-  var fees=new Array(12).fill(fee);
-  var np={id:Date.now(),client:client,addr:addr,cat:cat,status:status,prob:prob,fees:fees,lossReason:'',notes:'',noteTag:'General',noteDate:''};
-  PROJECTS.push(np);
-  var db=getDB();
-  if(db){db.from('projects').insert({client:np.client,addr:np.addr,cat:np.cat,status:np.status,prob:np.prob,fees:np.fees,loss_reason:'',notes:'',note_tag:'General',note_date:''}).select().single().then(function(r){if(r.data)np.id=r.data.id;});}
-  save();
-  refreshProjects();
-}
-
-// Safari compatibility: expose all functions as window globals
-(function() {
-  var toExpose = [
-    'goto','save','refreshProjects','initCharts','loadAllData',
-    'showStatus','getDB','setFY','setFY26Mo','showProjTab',
-    'editSalesTarget','updateSalesTargetUI','exportData','importData',
-    'clearSave','addProject','deleteProject','renderPLTable3',
-    'renderPLTableFY','initDashboard',
-    'showAddRow','cancelAdd','submitNewProject','editSalesTarget'
+    'showAddRow','cancelAdd','submitNewProject','editSalesTarget','updateSalesTargetCard'
   ];
   toExpose.forEach(function(name) {
     try {
