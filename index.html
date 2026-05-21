@@ -1797,10 +1797,19 @@ function updateSalesTargetCard(){
 function initDashboard(){
   loadAllData().then(function(){
     refreshProjects();renderPLTable3();renderPLTableFY();
-    setTimeout(function(){initCharts('overview');updateSalesTargetCard();},200);
+    setTimeout(function(){
+      initCharts('overview');
+      // Restore saved sales target
+      var st=parseFloat(localStorage.getItem('m2_sales_target'));
+      if(st&&st>0){window.SALES_TARGET=st;var e=document.getElementById('ov-sales');if(e&&!e.querySelector('input'))e.textContent='$'+Math.round(st).toLocaleString();}
+    },300);
   }).catch(function(e){
     refreshProjects();renderPLTable3();renderPLTableFY();
-    setTimeout(function(){initCharts('overview');updateSalesTargetCard();},200);
+    setTimeout(function(){
+      initCharts('overview');
+      var st=parseFloat(localStorage.getItem('m2_sales_target'));
+      if(st&&st>0){window.SALES_TARGET=st;var e=document.getElementById('ov-sales');if(e&&!e.querySelector('input'))e.textContent='$'+Math.round(st).toLocaleString();}
+    },300);
   });
 }
 var CURRENT_FY=27;
